@@ -1,0 +1,3 @@
+**/*.env
+helper_commands.txt
+**/target/

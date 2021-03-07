@@ -1,0 +1,2 @@
+cargo watch -x run
+curl --request POST   --url http://localhost:3000/api/invitation   --header 'content-type: application/json'   --data '{"email":"test@test.com"}'

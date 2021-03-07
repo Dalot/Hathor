@@ -1,8 +1,8 @@
-use crate::errors::ServiceError;
-use crate::models::Invitation;
+use crate::models::invitation::Invitation;
+use crate::errors::service::ServiceError;
+use lettre::message::header::{ContentType};
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::{Message, SmtpTransport, Transport};
-use lettre::message::header::{Header, Headers, ContentType};
 
 pub fn send_invitation(invitation: &Invitation) -> Result<(), ServiceError> {
     let email_body = format!(
@@ -41,7 +41,10 @@ pub fn send_invitation(invitation: &Invitation) -> Result<(), ServiceError> {
         .build();
     // Send the email
     match mailer.send(&email) {
-        Ok(_) => println!("Email sent successfully!"),
+        Ok(_) => {
+            println!("Email sent successfully!");
+            Ok(())
+        } // TODO: Make this return a service error?
         Err(e) => panic!("Could not send email: {:?}", e),
     }
 }

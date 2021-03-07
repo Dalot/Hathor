@@ -1,18 +1,17 @@
-// main.rs
 #[macro_use]
-#[warn(unused_imports)]
 extern crate diesel;
 
 use actix_identity::{CookieIdentityPolicy, IdentityService};
 use actix_web::{middleware, web, App, HttpServer};
 use diesel::prelude::*;
 use diesel::r2d2::{self, ConnectionManager};
-
-mod email_service;
+//mod email_service;
 mod errors;
+mod utils;
+mod database;
 mod invitation_handler;
 mod models;
-mod schema;
+mod services;
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {
@@ -23,7 +22,7 @@ async fn main() -> std::io::Result<()> {
 
     // create db connection pool
     let manager = ConnectionManager::<PgConnection>::new(database_url);
-    let pool: models::Pool = r2d2::Pool::builder()
+    let pool: database::types::Pool = r2d2::Pool::builder()
         .build(manager)
         .expect("Failed to create pool.");
     let domain: String = std::env::var("DOMAIN").unwrap_or_else(|_| "localhost".to_string());
@@ -34,14 +33,14 @@ async fn main() -> std::io::Result<()> {
             .data(pool.clone())
             // enable logger
             .wrap(middleware::Logger::default())
-            /*.wrap(IdentityService::new(
-                CookieIdentityPolicy::new(utils::SECRET_KEY.as_bytes())
+            .wrap(IdentityService::new(
+                CookieIdentityPolicy::new(utils::security::SECRET_KEY.as_bytes())
                     .name("auth")
                     .path("/")
                     .domain(domain.as_str())
                     .max_age(86400) // one day in seconds
                     .secure(false), // this can only be true if you have https
-            ))*/
+            ))
             // limit the maximum amount of data that server will accept
             .data(web::JsonConfig::default().limit(4096))
             // everything under '/api/' route

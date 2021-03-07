@@ -2,9 +2,10 @@ use actix_web::{error::BlockingError, web, HttpResponse};
 use diesel::{prelude::*, PgConnection};
 use serde::Deserialize;
 
-use crate::email_service::send_invitation;
-use crate::errors::ServiceError;
-use crate::models::{Invitation, Pool};
+use crate::services::email as EmailService;
+use crate::errors::service::ServiceError;
+use crate::models::invitation::Invitation;
+use crate::database::types::{Pool};
 
 #[derive(Deserialize)]
 pub struct InvitationData {
@@ -30,14 +31,14 @@ pub async fn post_invitation(
 fn create_invitation(
     email: String,
     pool: web::Data<Pool>,
-) -> Result<(), crate::errors::ServiceError> {
+) -> Result<(), ServiceError> {
     let invitation = dbg!(query(email, pool)?);
-    send_invitation(&invitation)
+    EmailService::send_invitation(&invitation)
 }
 
 /// Diesel query
-fn query(email: String, pool: web::Data<Pool>) -> Result<Invitation, crate::errors::ServiceError> {
-    use crate::schema::invitations::dsl::invitations;
+fn query(email: String, pool: web::Data<Pool>) -> Result<Invitation, ServiceError> {
+    use crate::database::schema::invitations::dsl::invitations;
 
     let new_invitation: Invitation = email.into();
     let conn: &PgConnection = &pool.get().unwrap();
